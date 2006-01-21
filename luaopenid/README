@@ -1,0 +1,40 @@
+1. Introduction
+
+This project provides a Lua implementation of the OpenID (http://openid.net/)
+authentication protocol.
+
+Currently only an OpenID server implementation has been completed. The server
+implementation includes all required components of the spec, but does not yet
+support the optional Diffie-Hellman secret key exchange.
+
+2. Requirements
+
+  - Lua 5.1 - http://www.lua.org/
+  
+    Lua OpenID requires Lua 5.1 (beta) since it uses the new Lua package
+    system. It would probably work with Compat-5.1 as well with some minor
+    tweaking.
+
+  - luacrypto 0.1.0 - http://luacrypto.luaforge.net/
+    
+    Lua OpenID uses luacrypto for all of its cryptographic requirements.
+
+  - LuaSocket - http://www.cs.princeton.edu/~diego/professional/luasocket/
+    
+    Lua OpenID uses LuaSocket for its HTTP requests and URL parsing. You will
+    probably want to remove the Compat-5.1 layer (easy to do) if you run this
+    under Lua 5.1 (beta).
+
+3. Installation
+
+This is a manual process. Simply copy the lua libraries under src (preserving
+the directory hierarchy from there) to wherever you keep your Lua addons.
+
+4. Credits
+
+The implementation details of certain features, particularly the assoc
+handles, was drawn from the Perl implementation (http://search.cpan.org/
+~bradfitz/Net-OpenID-Server-0.10/lib/Net/OpenID/Server.pm) by Brad
+Fitzpatrick. CGI parameter handling is done using a modified version of Jared
+Jennings' cgi5.lua (http://dingoskidneys.com/~jaredj/#lua).
+

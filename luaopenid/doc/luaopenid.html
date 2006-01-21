@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <title>Lua OpenID documentation</title>
+  </head>
+  <body>
+  
+    <h1>Table of Contents</h1>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#api">API</a></li>
+      <li><a href="#example">Example Implementation</a><ol>
+        <li><a href="#example-setup">Setup</a></li>
+        <li><a href="#example-comps">Components</a></li>
+      </ol></li>
+    </ol>
+    
+    <h1><a name="Overview">Overview</a></h1>
+    <p>This module is written to use the new Lua 5.1 package system. To use this module, you need to do:</p>
+    <pre><code>
+    local srv = require("OpenID.server")
+    </code></pre>
+    <p>This will put the OpenID.server package namespace into the <var>srv</var> table. To use the server you must set and call:</p>
+    <pre><code>
+    srv.auth_func = your_auth_function
+    srv.setup = your_setup_URL
+    srv.srv_secret = your_server_secret
+    srv.process_query()
+    </code></pre>
+    <p>Note that this package is not a complete stand-alone server implementation. In particular, you must provide the user login system via a custom auth_function and setup page that you provide to the server. For more details see the API description and the example implementation.</p>
+    
+    <h1><a name="api">API</a></h1>
+    
+    <h3>srv.auth_func = your_auth_function</h3>
+    <p>This property must be set to your custom authorization function. This function must accept a single parameter that will contain a table with the parsed identity URL. The URL is parsed using LuaSocket, and the resultant table will look like:</p>
+    <pre><code>parsed_url = {
+      url = string,
+      scheme = string,
+      authority = string,
+      path = string,
+      params = string,
+      query = string,
+      fragment = string,
+      userinfo = string,
+      host = string,
+      port = string,
+      user = string,
+      password = string
+    }</code></pre>
+    <p>The function must decide if the currently logged-in user (presumably determined via session-cookies or whatever) owns the identity URL provided. The function should return a true value if the user owns the identity, or false otherwise. The function may also return a second result, which should be a table, that includes extra parameters to provide to your setup URL, if neeeded.</p>
+    
+    <h3>srv.setup = your_setup_URL</h3>
+    <p>This property should be set to the full, canonical URL for your setup page. This is the page to which the user agent will be forwarded in the event that you cannot assert their ownership of the identity being checked. This may be because they are not logged in or because they have not yet given permission for the consumer to authenticate this identity. In addition, this setup page should preserve any openid parameters that are provided and pass them on to the return_to URL if it is provided.</p>
+    
+    <h3>srv.srv_secret = your_server_secret</h3>
+    <p>The server secret property should be set to a string value to use for generating shared secrets. This value should be unique and truly secret; anyone that knows your server secret can spoof your identity server's authentications. The more often this is changed, the more often existing assoc_handles will have to be invalidated.</p>
+    
+    <h3>srv.log_path = your_log_path</h3>
+    <p>The log path property indicates where to write a server log file, if any.</p>
+    
+    <h3>srv.log_lvl = your_log_lvl</h3>
+    <p>The log level property indicates at what level of detail to log server information. The default is 0, which is no logging at all. For maximum detail, use level 3.</p>
+    
+    <h3>srv.adpage = your_adpage</h3>
+    <p>The adpage property provides the full, canonical URL for an ad page to display if someone hits the server URL directly with no parameters. If set to nil (the default), a simple OpenID notice page will be generated.</p>
+    
+    <h3>srv.process_query()</h3>
+    <p>This function handles all OpenID server processing. It should generally be called from a stand-alone script that does very little except set the required server properties before making this call.</p>
+    
+    <h1><a name="example">Example Implementation</a></h1>
+    
+    <p>This module only provides OpenID server functionality; it does not provide a fully functional user management system. To demonstrate how this module would interact with a full implementation, an example implementation has been provided with the source code. This example uses a trivial and insecure user login sytem to demonstrate the basic concepts.</p>
+    
+    <h2><a name="example-setup">Setup</a></h2>
+    <p>To setup the example implementation, update the files "alice.html", "bob.html", and "users.lua" with your site-specific details. The configuration section in "users.lua" contains these settings:</p>
+    <ul>
+      <li><var>domain</var> - this should be set to the domain of your site, without any slashes, protocol (no http://), or trailing paths. For example, "openid.example.com".</li>
+      <li><var>root</var> - this should be set to the root path for your demo site, with both a leading and trailing slash. For example, "/" or "/demo/". Combined with the domain, this should provide the exact location where you have placed the example implementation scripts.</li>
+    </ul>
+    <p>The OpenID server URLs in the pages "alice.html" and "bob.html" must also be updated to match your site setup. You may also need to update the shebang (#!) lines in the "setup.cgi" and "server.cgi" files to reference your local lua binary if it is in a non-standard location. Finally, you of course must have installed the OpenID.server module in a library path accessible to your Lua interpreter.</p>
+    <p>To test it, simple hit the "index.html" page provided and follow the directions. If you have not set the required parameters, a "400 Bad Request" page will be generated when you hit the server script. If there are any Lua issues you will probably get a "500 Internal Server Error", and your web-server logs will be your best source of information. Any other issues can probably be identified by enabling logging in the OpenID.server module and setting the logging detail to the maximum level.</p> 
+    
+    <h2><a name="example-comps">Components</a></h2>
+    <p>The example implementation has several components. The first is the "server.cgi" script which sets the basic server properties and runs the server processing query. This script provides the entry point for all OpenID requests using the OpenID.server module for most of its functionality. The "setup.cgi" script provides a trivial user login system that uses a simple (and insecure) cookie to maintain state. Finally, the "users.lua" library provides an auth function for the server module and basic user management and configuration details for the entire implementation.</p>
+  </body>
+</html>
