@@ -336,7 +336,7 @@ Returns whether the provided handle appears to be a good, valid handle or not.
 function check_handle(handle)
   local parts = split(":", handle)
   local check = parts[1] .. ":" .. parts[2] .. ":"
-  if parts[3] == string.sub(hmac.digest(check, "sha1", srv_secret), 1, 10) then
+  if parts[3] == string.sub(hmac.digest("sha1", check, srv_secret), 1, 10) then
     return true
   else
     return false
@@ -468,7 +468,7 @@ function get_assoc_handle(openid)
   end
   
   handle = tostring(now) .. ":" .. nonce .. ":"
-  handle = handle .. string.sub(hmac.digest(handle, "sha1", srv_secret), 1, 10)
+  handle = handle .. string.sub(hmac.digest("sha1", handle, srv_secret), 1, 10)
   
   log(3, "generated new handle: " .. handle)
   return handle, invalid_handle
@@ -485,11 +485,11 @@ function get_assoc_secret(handle)
   if not time or not nonce or not nonce_sig then
     return nil
   end
-  if nonce_sig ~= string.sub(hmac.digest(time .. ":" .. nonce .. ":", "sha1", srv_secret), 1, 10) then
+  if nonce_sig ~= string.sub(hmac.digest("sha1", time .. ":" .. nonce .. ":", srv_secret), 1, 10) then
     return nil
   end
   
-  return hmac.digest(handle, "sha1", srv_secret, true)
+  return hmac.digest("sha1", handle, srv_secret, true)
 end
 
 --[[  signature = get_signature(openid)
@@ -505,7 +505,7 @@ function get_signature(openid, handle, param_list)
   for i, key in ipairs(param_list) do
     tokens = tokens .. key .. ":" .. tostring(openid[key]) .. "\n"
   end
-  return (mime.b64(hmac.digest(tokens, "sha1", secret, true))) 
+  return (mime.b64(hmac.digest("sha1", tokens, secret, true))) 
 end
 
 function split(delimiter, string)
